@@ -88,3 +88,7 @@ RUN apt-get update && apt-get install -y \
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 RUN apt-get update && apt-get install -y \
     openjdk-17-jdk
+
+RUN curl -sL https://firebase.tools | bash
+RUN dart pub global activate flutterfire_cli
+ENV PATH="$PATH":"$HOME/.pub-cache/bin"
