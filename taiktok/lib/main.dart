@@ -10,6 +10,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options_claude.dart';
 import 'services/paper_service.dart';
 import 'package:taiktok/models/paper.dart';
+import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,111 +23,63 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  AppTheme _currentTheme = AppTheme.cyberNeon;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeName = prefs.getString('theme') ?? AppTheme.cyberNeon.name;
+    setState(() {
+      _currentTheme = AppTheme.values.firstWhere(
+        (t) => t.name == themeName,
+        orElse: () => AppTheme.cyberNeon,
+      );
+    });
+  }
+
+  Future<void> _saveTheme(AppTheme theme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme', theme.name);
+    setState(() {
+      _currentTheme = theme;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Taiktok',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blueGrey,
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-          bodyLarge: TextStyle(color: Colors.white, fontSize: 16),
-        ),
+      title: 'TaikTok',
+      theme: AppThemes.getTheme(_currentTheme),
+      home: MyHomePage(
+        onThemeChanged: _saveTheme,
+        currentTheme: _currentTheme,
       ),
-      home: const MyHomePage(title: 'Taiktok'),
     );
   }
 }
 
-// class Paper {
-//   final String title;
-//   final List<String> authors;
-//   final String abstract;
-//   final String publishDate;
-//   final String arxivId;
-//   final List<String> tags;
-//   final String arxivUrl;
-//   final String? githubUrl;
-//   List<String> contributions;
-
-//   Paper({
-//     required this.title,
-//     required this.authors,
-//     required this.abstract,
-//     required this.publishDate,
-//     required this.arxivId,
-//     required this.tags,
-//     required this.arxivUrl,
-//     this.githubUrl,
-//     this.contributions = const <String>[],
-//   });
-
-//   static String? extractGithubUrl(String text) {
-//     final githubRegex = RegExp(
-//       r'https?:\/\/(?:www\.)?github\.(?:com|io)\/[^\s\)]+',
-//       caseSensitive: false,
-//     );
-//     final match = githubRegex.firstMatch(text);
-//     if (match != null) {
-//       final group0 = match.group(0);
-//       if (group0 != null && group0.endsWith('.')) {
-//         return group0.substring(0, group0.length - 1);
-//       }
-//       return group0;
-//     }
-//     return null;
-//   }
-
-//   factory Paper.fromArxiv(xml.XmlElement entry) {
-//     final title = entry.findElements('title').first.innerText.trim();
-//     final authors = entry
-//         .findElements('author')
-//         .map((author) => author.findElements('name').first.innerText.trim())
-//         .toList();
-//     final abstract = entry
-//         .findElements('summary')
-//         .first
-//         .innerText
-//         .trim()
-//         .replaceAll('\n', ' ');
-//     final publishDate = entry.findElements('published').first.innerText.trim();
-//     final arxivId = entry
-//         .findElements('id')
-//         .first
-//         .innerText
-//         .trim()
-//         .split('/')
-//         .last
-//         .replaceAll('v', '');
-//     // keep the 10 first char in the id
-//     final arxivUrl = 'https://arxiv.org/abs/${arxivId.substring(0, 10)}';
-//     final githubUrl = extractGithubUrl(abstract);
-
-//     return Paper(
-//       title: title,
-//       authors: authors,
-//       abstract: abstract,
-//       publishDate: DateFormat('yyyy-MM-dd').format(DateTime.parse(publishDate)),
-//       arxivId: arxivId,
-//       tags: ['AI'],
-//       arxivUrl: arxivUrl,
-//       githubUrl: githubUrl,
-//     );
-//   }
-// }
-
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  final Function(AppTheme) onThemeChanged;
+  final AppTheme currentTheme;
 
-  final String title;
+  const MyHomePage({
+    super.key,
+    required this.onThemeChanged,
+    required this.currentTheme,
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -444,7 +397,27 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/logo.png',
+              height: 40,
+              fit: BoxFit.contain,
+            ),
+            // const SizedBox(width: 8),
+            // const Text(
+            //   'TaikTok',
+            //   textAlign: TextAlign.center,
+            //   style: TextStyle(
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.bold,
+            //   ),
+            // ),
+          ],
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -495,6 +468,7 @@ class _MyHomePageState extends State<MyHomePage> {
       initialQuery: _customQuery,
       initialThreshold: _similarityThreshold,
       initialModel: _model,
+      initialTheme: widget.currentTheme,
       onApiKeyChanged: (key) async {
         await _saveGeminiApiKey(key);
         _paperService = PaperService(key);
@@ -508,6 +482,7 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
       onModelChanged: _saveModel,
+      onThemeChanged: widget.onThemeChanged,
       onApply: () {
         _fetchPapers();
       },
@@ -534,21 +509,25 @@ class _SettingsDialog extends StatefulWidget {
   final String initialQuery;
   final double initialThreshold;
   final String initialModel;
+  final AppTheme initialTheme;
   final Function(String) onApiKeyChanged;
   final Function(String) onQueryChanged;
   final Function(double) onThresholdChanged;
   final Function(String) onModelChanged;
-  final Function onApply;
+  final Function(AppTheme) onThemeChanged;
+  final VoidCallback onApply;
 
   const _SettingsDialog({
     required this.initialApiKey,
     required this.initialQuery,
     required this.initialThreshold,
     required this.initialModel,
+    required this.initialTheme,
     required this.onApiKeyChanged,
     required this.onQueryChanged,
     required this.onThresholdChanged,
     required this.onModelChanged,
+    required this.onThemeChanged,
     required this.onApply,
   });
 
@@ -561,6 +540,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   late TextEditingController _queryController;
   late double _threshold;
   late String _selectedModel;
+  late AppTheme _selectedTheme;
 
   final List<String> _availableModels = [
     'gemini-2.0-flash-lite-preview-02-05',
@@ -575,6 +555,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
     _queryController = TextEditingController(text: widget.initialQuery);
     _threshold = widget.initialThreshold;
     _selectedModel = widget.initialModel;
+    _selectedTheme = widget.initialTheme;
   }
 
   @override
@@ -649,26 +630,43 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                 }
               },
             ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<AppTheme>(
+              value: _selectedTheme,
+              decoration: const InputDecoration(
+                labelText: 'Theme',
+                hintText: 'Select theme',
+              ),
+              items: AppTheme.values.map((theme) {
+                return DropdownMenuItem(
+                  value: theme,
+                  child: Text(theme.displayName),
+                );
+              }).toList(),
+              onChanged: (AppTheme? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _selectedTheme = newValue;
+                  });
+                  widget.onThemeChanged(newValue);
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                widget.onApiKeyChanged(_apiKeyController.text);
+                widget.onQueryChanged(_queryController.text);
+                widget.onThresholdChanged(_threshold);
+                widget.onModelChanged(_selectedModel);
+                widget.onApply();
+                Navigator.pop(context);
+              },
+              child: const Text('Apply'),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            widget.onApiKeyChanged(_apiKeyController.text);
-            widget.onQueryChanged(_queryController.text);
-            widget.onThresholdChanged(_threshold);
-            widget.onModelChanged(_selectedModel);
-            widget.onApply();
-            Navigator.pop(context);
-          },
-          child: const Text('Apply'),
-        ),
-      ],
     );
   }
 }
@@ -718,6 +716,7 @@ class _PaperCardState extends State<PaperCard> {
   }
 
   Widget _buildProgressIndicator() {
+    print(_currentSection);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
@@ -730,7 +729,7 @@ class _PaperCardState extends State<PaperCard> {
             shape: BoxShape.circle,
             color: index == _currentSection
                 ? Colors.white
-                : Colors.white.withOpacity(0.3),
+                : Colors.cyanAccent.withValues(alpha: 100), // 0.3 * 255 = 77
           ),
         ),
       ),
@@ -907,8 +906,12 @@ class _PaperCardState extends State<PaperCard> {
               children: widget.paper.tags
                   .map(
                     (tag) => Chip(
+                      backgroundColor:
+                          Colors.cyan.withValues(alpha: 51), // 0.2 * 255 = 51
+                      side: BorderSide(
+                          color: Colors.cyan
+                              .withValues(alpha: 128)), // 0.5 * 255 = 128
                       label: Text(tag),
-                      backgroundColor: Colors.blueGrey.shade700,
                     ),
                   )
                   .toList(),
@@ -924,36 +927,73 @@ class _PaperCardState extends State<PaperCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (TapDownDetails details) {
-        // Get the tap position
-        final tapPosition = details.localPosition;
-        if (tapPosition.dx < MediaQuery.of(context).size.width / 2) {
-          _previousSection();
-        } else {
-          _nextSection();
-        }
-      },
+    return Card(
+      elevation: 8,
+      margin: const EdgeInsets.all(16),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black.withOpacity(0.7), Colors.blueGrey.shade900],
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  stops: const [0.0, 0.3, 0.7, 1.0],
+                  colors: [
+                    const Color.fromARGB(255, 34, 0, 50)
+                        .withValues(alpha: 3), // 0.95 * 255 = 242
+                    const Color(0xFF1A1B26),
+                    const Color(0xFF2A2B36),
+                    const Color.fromARGB(255, 1, 51, 50)
+                        .withValues(alpha: 3), // 0.9 * 255 = 230
+                  ],
+                )
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Theme.of(context).colorScheme.surfaceContainer,
+                    Theme.of(context).colorScheme.surfaceContainerHigh,
+                  ],
+                ),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: Colors.cyan.withValues(alpha: 128), // 0.5 * 255 = 128
+            width: 1,
           ),
+          boxShadow: Theme.of(context).brightness == Brightness.dark
+              ? [
+                  // BoxShadow(
+                  //   color: Theme.of(context)
+                  //       .colorScheme
+                  //       .surface
+                  //       .withValues(alpha: 100), // 0.1 * 255 = 26
+                  //   blurRadius: 50,
+                  //   spreadRadius: 5,
+                  // ),
+                  BoxShadow(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 8), // 0.05 * 255 = 13
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ]
+              : null,
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 40.0,
-            ),
-            child: Center(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _buildContent(),
-              ),
-            ),
+        padding: const EdgeInsets.all(16),
+        child: GestureDetector(
+          onTapDown: (TapDownDetails details) {
+            // Get the tap position
+            final tapPosition = details.localPosition;
+            if (tapPosition.dx < MediaQuery.of(context).size.width / 2) {
+              _previousSection();
+            } else {
+              _nextSection();
+            }
+          },
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _buildContent(),
           ),
         ),
       ),

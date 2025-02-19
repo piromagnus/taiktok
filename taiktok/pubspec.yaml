@@ -25,6 +25,30 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: "^0.14.3"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path: "assets/logo.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/logo.png"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo.png
+  fonts:
+    - family: Orbitron
+      fonts:
+        - asset: assets/fonts/Orbitron-Regular.ttf
+        - asset: assets/fonts/Orbitron-Bold.ttf
+          weight: 700
+    - family: Exo
+      fonts:
+        - asset: assets/fonts/Exo-Regular.ttf
+        - asset: assets/fonts/Exo-Bold.ttf
+          weight: 700
