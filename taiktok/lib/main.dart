@@ -31,7 +31,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  AppTheme _currentTheme = AppTheme.cyberNeon;
+  AppTheme _currentTheme = AppTheme.cyberGalaxy;
 
   @override
   void initState() {
@@ -41,11 +41,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    final themeName = prefs.getString('theme') ?? AppTheme.cyberNeon.name;
+    final themeName = prefs.getString('theme') ?? AppTheme.cyberGalaxy.name;
     setState(() {
       _currentTheme = AppTheme.values.firstWhere(
         (t) => t.name == themeName,
-        orElse: () => AppTheme.cyberNeon,
+        orElse: () => AppTheme.cyberGalaxy,
       );
     });
   }
@@ -630,28 +630,28 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                 }
               },
             ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<AppTheme>(
-              value: _selectedTheme,
-              decoration: const InputDecoration(
-                labelText: 'Theme',
-                hintText: 'Select theme',
-              ),
-              items: AppTheme.values.map((theme) {
-                return DropdownMenuItem(
-                  value: theme,
-                  child: Text(theme.displayName),
-                );
-              }).toList(),
-              onChanged: (AppTheme? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    _selectedTheme = newValue;
-                  });
-                  widget.onThemeChanged(newValue);
-                }
-              },
-            ),
+            // const SizedBox(height: 20),
+            // DropdownButtonFormField<AppTheme>(
+            //   value: _selectedTheme,
+            //   decoration: const InputDecoration(
+            //     labelText: 'Theme',
+            //     hintText: 'Select theme',
+            //   ),
+            //   items: AppTheme.values.map((theme) {
+            //     return DropdownMenuItem(
+            //       value: theme,
+            //       child: Text(theme.displayName),
+            //     );
+            //   }).toList(),
+            //   onChanged: (AppTheme? newValue) {
+            //     if (newValue != null) {
+            //       setState(() {
+            //         _selectedTheme = newValue;
+            //       });
+            //       widget.onThemeChanged(newValue);
+            //     }
+            //   },
+            // ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
@@ -681,6 +681,8 @@ class PaperCard extends StatefulWidget {
 }
 
 class _PaperCardState extends State<PaperCard> {
+  bool _leftTapped = false;
+  bool _rightTapped = false;
   int _currentSection = 0;
   final List<String> _sections = [
     'title',
@@ -727,9 +729,7 @@ class _PaperCardState extends State<PaperCard> {
           height: 8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: index == _currentSection
-                ? Colors.white
-                : Colors.cyanAccent.withValues(alpha: 100), // 0.3 * 255 = 77
+            color: index == _currentSection ? Colors.cyanAccent : Colors.white,
           ),
         ),
       ),
@@ -906,11 +906,11 @@ class _PaperCardState extends State<PaperCard> {
               children: widget.paper.tags
                   .map(
                     (tag) => Chip(
-                      backgroundColor:
-                          Colors.cyan.withValues(alpha: 51), // 0.2 * 255 = 51
+                      backgroundColor: Theme.of(context).colorScheme.tertiary,
                       side: BorderSide(
+                          width: 2,
                           color: Colors.cyan
-                              .withValues(alpha: 128)), // 0.5 * 255 = 128
+                              .withValues(alpha: 200)), // 0.5 * 255 = 128
                       label: Text(tag),
                     ),
                   )
@@ -930,71 +930,150 @@ class _PaperCardState extends State<PaperCard> {
     return Card(
       elevation: 8,
       margin: const EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: Theme.of(context).brightness == Brightness.dark
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  stops: const [0.0, 0.3, 0.7, 1.0],
-                  colors: [
-                    const Color.fromARGB(255, 34, 0, 50)
-                        .withValues(alpha: 3), // 0.95 * 255 = 242
-                    const Color(0xFF1A1B26),
-                    const Color(0xFF2A2B36),
-                    const Color.fromARGB(255, 1, 51, 50)
-                        .withValues(alpha: 3), // 0.9 * 255 = 230
-                  ],
-                )
-              : LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).colorScheme.surfaceContainer,
-                    Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ],
-                ),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: Colors.cyan.withValues(alpha: 128), // 0.5 * 255 = 128
-            width: 1,
-          ),
-          boxShadow: Theme.of(context).brightness == Brightness.dark
-              ? [
-                  // BoxShadow(
-                  //   color: Theme.of(context)
-                  //       .colorScheme
-                  //       .surface
-                  //       .withValues(alpha: 100), // 0.1 * 255 = 26
-                  //   blurRadius: 50,
-                  //   spreadRadius: 5,
-                  // ),
-                  BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surface
-                        .withValues(alpha: 8), // 0.05 * 255 = 13
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ]
-              : null,
-        ),
-        padding: const EdgeInsets.all(16),
-        child: GestureDetector(
-          onTapDown: (TapDownDetails details) {
-            // Get the tap position
-            final tapPosition = details.localPosition;
-            if (tapPosition.dx < MediaQuery.of(context).size.width / 2) {
-              _previousSection();
-            } else {
-              _nextSection();
+      child: GestureDetector(
+        onTapDown: (details) {
+          final tapPosition = details.localPosition;
+          final isLeft = tapPosition.dx < MediaQuery.of(context).size.width / 2;
+          setState(() {
+            _leftTapped = isLeft;
+            _rightTapped = !isLeft;
+          });
+          Future.delayed(const Duration(milliseconds: 200), () {
+            if (mounted) {
+              setState(() {
+                _leftTapped = false;
+                _rightTapped = false;
+              });
             }
-          },
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: _buildContent(),
-          ),
+          });
+
+          if (tapPosition.dx < MediaQuery.of(context).size.width / 2) {
+            _previousSection();
+          } else {
+            _nextSection();
+          }
+        },
+        child: Stack(
+          children: [
+            Container(
+              height: double.infinity,
+              decoration: BoxDecoration(
+                gradient: Theme.of(context).brightness == Brightness.dark
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        stops: const [0.0, 0.3, 0.7, 1.0],
+                        colors: [
+                          const Color.fromARGB(255, 34, 0, 50)
+                              .withValues(alpha: 3), // 0.95 * 255 = 242
+                          const Color(0xFF1A1B26),
+                          const Color(0xFF2A2B36),
+                          const Color.fromARGB(255, 1, 51, 50)
+                              .withValues(alpha: 3), // 0.9 * 255 = 230
+                        ],
+                      )
+                    : LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).colorScheme.surfaceContainer,
+                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                        ],
+                      ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.cyan.withValues(alpha: 128), // 0.5 * 255 = 128
+                  width: 1,
+                ),
+                boxShadow: Theme.of(context).brightness == Brightness.dark
+                    ? [
+                        // BoxShadow(
+                        //   color: Theme.of(context)
+                        //       .colorScheme
+                        //       .surface
+                        //       .withValues(alpha: 100), // 0.1 * 255 = 26
+                        //   blurRadius: 50,
+                        //   spreadRadius: 5,
+                        // ),
+                        BoxShadow(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surface
+                              .withValues(alpha: 8), // 0.05 * 255 = 13
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ]
+                    : null,
+              ),
+              padding: const EdgeInsets.all(16),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _buildContent(),
+              ),
+            ),
+            // Left half overlay
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: MediaQuery.of(context).size.width / 2,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: _leftTapped ? 0.02 : 0.0,
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.centerLeft,
+                      radius: 1,
+                      stops: const [0.0, 0.7, 1.0],
+                      colors: [
+                        // Colors.cyan.withValues(alpha: 10),
+                        // Colors.transparent,
+                        // Colors.transparent,
+                        // Colors.cyan.withValues(alpha: 2),
+                        // Colors.cyan.withValues(alpha: 10),
+                        Colors.cyan.withValues(alpha: 10),
+                        Colors.cyan.withValues(alpha: 5),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Right half overlay
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: MediaQuery.of(context).size.width / 2,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: _rightTapped ? 0.02 : 0.0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.centerRight,
+                      radius: 1,
+                      stops: const [0.0, 0.7, 1.0],
+                      colors: [
+                        // Colors.cyan.withValues(alpha: 10),
+                        // Colors.transparent,
+                        // Colors.transparent,
+                        // Colors.cyan.withValues(alpha: 2),
+                        // Colors.cyan.withValues(alpha: 10),
+                        Colors.cyan.withValues(alpha: 10),
+                        Colors.cyan.withValues(alpha: 5),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
