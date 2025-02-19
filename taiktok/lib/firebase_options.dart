@@ -61,9 +61,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBA3appsSaLzwFPxiGCnDRG_ZibNBYGdFc',
-    appId: '1:313506961077:android:f48248e8a58c6a92b750fc',
+    appId: '1:313506961077:android:560bb7639055c432b750fc',
     messagingSenderId: '313506961077',
     projectId: 'taiktok-a5b77',
     storageBucket: 'taiktok-a5b77.firebasestorage.app',
   );
+
 }
