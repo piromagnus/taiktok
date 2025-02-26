@@ -236,9 +236,15 @@ class AppThemes {
     ),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(
-        fontFamily: 'Orbitron',
+        // fontFamily: 'Orbitron',
         fontSize: 16,
         color: Colors.white,
+      ),
+      titleMedium: TextStyle(
+        fontFamily: 'Orbitron',
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.cyanAccent,
       ),
       headlineMedium: TextStyle(
         fontFamily: 'Orbitron',

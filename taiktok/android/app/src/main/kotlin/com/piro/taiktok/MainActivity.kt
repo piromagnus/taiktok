@@ -1,4 +1,4 @@
-package com.example.taiktok
+package com.piro.taiktok
 
 import io.flutter.embedding.android.FlutterActivity
 

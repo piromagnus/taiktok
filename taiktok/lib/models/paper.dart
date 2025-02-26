@@ -11,6 +11,10 @@ class Paper {
   final String arxivUrl;
   final String? githubUrl;
   List<String> contributions;
+  String problemSolved;
+  String taskType;
+  String category;
+  List<double> embedding;
 
   Paper({
     required this.title,
@@ -18,10 +22,14 @@ class Paper {
     required this.abstract,
     required this.publishDate,
     required this.arxivId,
-    required this.tags,
     required this.arxivUrl,
     this.githubUrl,
-    this.contributions = const <String>[],
+    this.tags = const [],
+    this.contributions = const [],
+    this.problemSolved = '',
+    this.taskType = '',
+    this.category = '',
+    this.embedding = const [],
   });
 
   static String? extractGithubUrl(String text) {
@@ -70,13 +78,15 @@ class Paper {
       abstract: abstract,
       publishDate: DateFormat('yyyy-MM-dd').format(DateTime.parse(publishDate)),
       arxivId: arxivId,
-      tags: ['AI'],
       arxivUrl: arxivUrl,
       githubUrl: githubUrl,
     );
   }
 
   Map<String, dynamic> toMap() {
+    print('toMap : $arxivId');
+    print(contributions);
+    print(tags);
     return {
       'title': title,
       'authors': authors,
@@ -87,20 +97,29 @@ class Paper {
       'arxivUrl': arxivUrl,
       'githubUrl': githubUrl,
       'contributions': contributions,
+      'problemSolved': problemSolved,
+      'taskType': taskType,
+      'category': category,
+      'embedding': embedding,
     };
   }
 
   factory Paper.fromMap(Map<String, dynamic> map) {
+    // print(map);
     return Paper(
-      title: map['title'],
-      authors: List<String>.from(map['authors']),
-      abstract: map['abstract'],
-      publishDate: map['publishDate'],
-      arxivId: map['arxivId'],
-      tags: List<String>.from(map['tags']),
-      arxivUrl: map['arxivUrl'],
+      title: map['title'] ?? '',
+      authors: List<String>.from(map['authors'] ?? []),
+      abstract: map['abstract'] ?? '',
+      publishDate: map['publishDate'] ?? '',
+      arxivId: map['arxivId'] ?? '',
+      tags: List<String>.from(map['tags'] ?? []),
+      arxivUrl: map['arxivUrl'] ?? '',
       githubUrl: map['githubUrl'],
-      contributions: List<String>.from(map['contributions']),
+      contributions: List<String>.from(map['contributions'] ?? []),
+      problemSolved: map['problemSolved'] ?? '',
+      taskType: map['taskType'] ?? '',
+      category: map['category'] ?? '',
+      embedding: List<double>.from(map['embedding'] ?? []),
     );
   }
 }
